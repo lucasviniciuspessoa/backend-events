@@ -6,6 +6,7 @@ use App\Models\User;
 use Exception;
 use Illuminate\Auth\Events\Validated;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 
@@ -39,7 +40,7 @@ class AuthController extends Controller
             $token = $user->createToken('app_token')->plainTextToken;
         }catch(\Exception $e) {
             return response()->json([
-                'message' => 'Erro ao  registrar um usuárip',
+                'message' => 'Erro ao  registrar um usuário',
                 'error'=> $e->getMessage()
             ]);
         }
@@ -53,11 +54,28 @@ class AuthController extends Controller
 
 
     }
+    public function login(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|string|email|max:255',
+            'password' => 'required|string|min:7',
+        ]);
 
-    public function login(Request $request){
-        $validator = Validator::make([
-            'email'=> 'required|email|string|max:255',
-            'password'=> 'required|string|min:3'
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json(['message' => 'Credenciais inválidas'], 401);
+        }
+
+        $token = $user->createToken('app_token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Login realizado com sucesso!',
+            'token' => $token,
         ]);
     }
     //
