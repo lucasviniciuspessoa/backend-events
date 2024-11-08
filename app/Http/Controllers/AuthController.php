@@ -53,5 +53,12 @@ class AuthController extends Controller
 
 
     }
+
+    public function login(Request $request){
+        $validator = Validator::make([
+            'email'=> 'required|email|string|max:255',
+            'password'=> 'required|string|min:3'
+        ]);
+    }
     //
 }
